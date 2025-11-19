@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SunRay Condo Custom Calendar</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --border-soft: #cbd5f5;
+      --text-muted: #4b5563;
+      --text-muted-soft: #6b7280;
+      --shadow-card: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
+      --pill-radius: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      border: 1px solid var(--border-soft);
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .month-header {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      font-size: 12px;
+      padding: 4px 0;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--pill-radius);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .day-card {
+      background: var(--card);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 6px 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .day-number {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .event-pill {
+      border-radius: var(--pill-radius);
+      padding: 2px 4px;
+      font-size: 10px;
+      color: #ffffff;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .month-nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      margin-top: 16px;
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .entry-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .entry-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 12px;
+      color: #ffffff;
+    }
+
+    .small-btn {
+      border: none;
+      border-radius: var(--pill-radius);
+      padding: 2px 6px;
+      font-size: 11px;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.15);
+      color: #0f172a;
+    }
+
+    .family-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .family-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .family-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .family-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .close-btn {
+      margin-top: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .no-entries {
+      font-size: 13px;
+      color: var(--text-muted-soft);
+    }
+
+    @media (max-width: 600px) {
+      .calendar-grid {
+        gap: 3px;
+      }
+
+      .day-card {
+        padding: 4px 2px;
+      }
+
+      .title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="container">
+      <div id="app"></div>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = {
+      red: { label: "Not Using", hex: "#ef4444" },
+      yellow: { label: "Might Be Using", hex: "#eab308" },
+      green: { label: "Using the House", hex: "#22c55e" },
+      blue: { label: "Friends / Guests", hex: "#3b82f6" }
+    };
+
+    const FAMILIES = [
+      "Miller",
+      "Sadeh",
+      "Lindquist",
+      "Miller Friends",
+      "Sadeh Friends",
+      "Lindquist Friends"
+    ];
+
+    const MONTH_NAMES = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ];
+
+    function getDayKey(year, month, day) {
+      return year + "-" + month + "-" + day; // month 0-based
+    }
+
+    const today = new Date();
+    let currentYear = today.getFullYear();
+    let currentMonth = today.getMonth();
+    let selectedDate = null;
+    let events = {}; // { "year-month-day": [ { familyIndex, color }, ... ] }
+    let history = [];
+
+    function daysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+
+    function pushHistory() {
+      const clone = JSON.parse(JSON.stringify(events));
+      history.push(clone);
+    }
+
+    function addEvent(dayKey, familyIndex, color) {
+      if (!dayKey) return;
+      pushHistory();
+      if (!events[dayKey]) {
+        events[dayKey] = [];
+      }
+      events[dayKey].push({ familyIndex, color });
+      render();
+    }
+
+    function deleteEvent(dayKey, index) {
+      if (!dayKey || !events[dayKey]) return;
+      pushHistory();
+      const list = events[dayKey];
+      list.splice(index, 1);
+      if (!list.length) {
+        delete events[dayKey];
+      }
+      render();
+    }
+
+    function undoLast() {
+      if (!history.length) return;
+      events = history.pop() || {};
+      render();
+    }
+
+    function goToPrevMonth() {
+      selectedDate = null;
+      if (currentMonth === 0) {
+        currentMonth = 11;
+        currentYear -= 1;
+      } else {
+        currentMonth -= 1;
+      }
+      render();
+    }
+
+    function goToNextMonth() {
+      selectedDate = null;
+      if (currentMonth === 11) {
+        currentMonth = 0;
+        currentYear += 1;
+      } else {
+        currentMonth += 1;
+      }
+      render();
+    }
+
+    function onDayClick(day) {
+      selectedDate = day;
+      render();
+    }
+
+    function closePanel() {
+      selectedDate = null;
+      render();
+    }
+
+    function render() {
+      const app = document.getElementById("app");
+      const numDays = daysInMonth(currentYear, currentMonth);
+      const selectedDayKey =
+        selectedDate !== null ? getDayKey(currentYear, currentMonth, selectedDate) : null;
+      const selectedEvents = selectedDayKey && events[selectedDayKey]
+        ? events[selectedDayKey]
+        : [];
+
+      const legendHtml = Object.entries(COLORS)
+        .map(([key, value]) => {
+          return (
+            '<div class="legend-item">' +
+            '<span class="legend-dot" style="background-color:' + value.hex + '"></span>' +
+            '<span>' + value.label + '</span>' +
+            '</div>'
+          );
+        })
+        .join("");
+
+      let daysHtml = "";
+      for (let date = 1; date <= numDays; date++) {
+        const dayKey = getDayKey(currentYear, currentMonth, date);
+        const eventItems = events[dayKey] || [];
+
+        const eventHtml = eventItems
+          .map((ev) => {
+            const color = COLORS[ev.color];
+            const bg = color ? color.hex : "#0f172a";
+            const familyName = FAMILIES[ev.familyIndex] || "";
+            return (
+              '<div class="event-pill" style="background-color:' +
+              bg +
+              '" title="' +
+              familyName +
+              '">' +
+              familyName +
+              '</div>'
+            );
+          })
+          .join("");
+
+        daysHtml +=
+          '<div class="day-card" data-action="day" data-day="' + date + '">' +
+          '<div class="day-number">' +
+          date +
+          '</div>' +
+          '<div>' +
+          eventHtml +
+          '</div>' +
+          '</div>';
+      }
+
+      let selectedEntriesHtml = "";
+      if (!selectedEvents.length) {
+        selectedEntriesHtml = '<div class="no-entries">No entries yet for this day.</div>';
+      } else {
+        selectedEntriesHtml =
+          '<div class="entry-list">' +
+          selectedEvents
+            .map((ev, idx) => {
+              const color = COLORS[ev.color];
+              const bg = color ? color.hex : "#0f172a";
+              const familyName = FAMILIES[ev.familyIndex] || "";
+              const label = color ? color.label : "";
+              return (
+                '<div class="entry-row" style="background-color:' +
+                bg +
+                '" data-daykey="' + selectedDayKey + '" data-index="' + idx + '">' +
+                '<span>' +
+                familyName +
+                ' – ' +
+                label +
+                '</span>' +
+                '<button class="small-btn" type="button" data-action="delete" data-daykey="' +
+                selectedDayKey +
+                '" data-index="' +
+                idx +
+                '">✕</button>' +
+                '</div>'
+              );
+            })
+            .join("") +
+          '</div>';
+      }
+
+      const familyGridHtml = FAMILIES.map((family, familyIndex) => {
+        const isFriends = family.toLowerCase().includes("friends");
+        const availableColors = isFriends ? ["blue"] : ["green", "yellow", "red"];
+
+        const buttonsHtml = availableColors
+          .map((key) => {
+            const value = COLORS[key];
+            return (
+              '<button' +
+              ' class="btn"' +
+              ' type="button"' +
+              ' style="background:' +
+              value.hex +
+              ";color:white;border-color:" +
+              value.hex +
+              '"' +
+              ' data-action="add"' +
+              ' data-daykey="' +
+              (selectedDayKey || "") +
+              '"' +
+              ' data-family="' +
+              familyIndex +
+              '"' +
+              ' data-color="' +
+              key +
+              '"' +
+              ">" +
+              value.label +
+              "</button>"
+            );
+          })
+          .join("");
+
+        return (
+          '<div class="family-box">' +
+          '<div class="family-title">' +
+          family +
+          "</div>" +
+          '<div class="family-buttons">' +
+          buttonsHtml +
+          "</div>" +
+          "</div>"
+        );
+      }).join("");
+
+      const undoDisabled = history.length === 0 ? "disabled" : "";
+
+      app.innerHTML =
+        '<div class="header-row">' +
+        '<div>' +
+        '<div class="title">SunRay Condo Custom Calendar</div>' +
+        '<div class="subtitle">Tap a day to add or edit usage.</div>' +
+        "</div>" +
+        '<button class="btn" type="button" data-action="undo" ' + undoDisabled + ">" +
+        "Undo last change" +
+        "</button>" +
+        "</div>" +
+
+        '<div class="month-header">' +
+        MONTH_NAMES[currentMonth] +
+        " " +
+        currentYear +
+        "</div>" +
+
+        '<div class="legend-row">' +
+        legendHtml +
+        "</div>" +
+
+        "<div>" +
+        '<div class="calendar-grid">' +
+        daysHtml +
+        "</div>" +
+
+        '<div class="month-nav-row">' +
+        '<button class="btn" type="button" data-action="prev">' +
+        "  ← Previous" +
+        "</button>" +
+        "<div>" +
+        MONTH_NAMES[currentMonth] +
+        " " +
+        currentYear +
+        "</div>" +
+        '<button class="btn" type="button" data-action="next">' +
+        "  Next →" +
+        "</button>" +
+        "</div>" +
+        "</div>" +
+
+        (selectedDate !== null
+          ?
+            '<div class="panel">' +
+            '<div class="panel-title">' +
+            MONTH_NAMES[currentMonth] +
+            " " +
+            selectedDate +
+            ", " +
+            currentYear +
+            "</div>" +
+
+            "<div>" +
+            '<div class="section-title">Current entries</div>' +
+            selectedEntriesHtml +
+            "</div>" +
+
+            '<div class="family-grid">' +
+            familyGridHtml +
+            "</div>" +
+
+            '<button class="close-btn" type="button" data-action="close">' +
+            "Close" +
+            "</button>" +
+            "</div>"
+          : ""
+        );
+    }
+
+    const appRoot = document.getElementById("app");
+
+    appRoot.addEventListener("click", function (e) {
+      const target = e.target.closest("[data-action]");
+      if (!target) return;
+      const action = target.getAttribute("data-action");
+
+      if (action === "day") {
+        const day = parseInt(target.getAttribute("data-day"), 10);
+        if (!isNaN(day)) {
+          onDayClick(day);
+        }
+      } else if (action === "prev") {
+        goToPrevMonth();
+      } else if (action === "next") {
+        goToNextMonth();
+      } else if (action === "undo") {
+        undoLast();
+      } else if (action === "close") {
+        closePanel();
+      } else if (action === "add") {
+        const dayKey = target.getAttribute("data-daykey");
+        const familyIndex = parseInt(target.getAttribute("data-family"), 10);
+        const color = target.getAttribute("data-color");
+        if (!dayKey) {
+          alert("Tap a day first, then add usage.");
+          return;
+        }
+        if (!isNaN(familyIndex) && color) {
+          addEvent(dayKey, familyIndex, color);
+        }
+      } else if (action === "delete") {
+        const dayKey = target.getAttribute("data-daykey");
+        const idx = parseInt(target.getAttribute("data-index"), 10);
+        if (dayKey && !isNaN(idx)) {
+          deleteEvent(dayKey, idx);
+        }
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>

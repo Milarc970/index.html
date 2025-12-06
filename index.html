@@ -88,12 +88,21 @@
       border-radius: var(--pill-radius);
     }
 
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-weight: 600;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 4px;
       font-size: 12px;
-      margin-top: 8px;
+      margin-top: 4px;
     }
 
     .day-card {
@@ -231,7 +240,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script>
-    // Your actual Firebase config
+    // Your Firebase config (from your project)
     const firebaseConfig = {
       apiKey: "AIzaSyBB2xWE_R6y1NSwLHMtOYU-qgvo7Q_K4-0",
       authDomain: "sunray-calendar-60d27.firebaseapp.com",
@@ -378,6 +387,15 @@
         .join("");
 
       let daysHtml = "";
+
+      // Align day 1 under correct weekday (Sunday = 0)
+      const firstWeekday = new Date(currentYear, currentMonth, 1).getDay(); // 0=Sun..6=Sat
+      for (let i = 0; i < firstWeekday; i++) {
+        // Invisible placeholders so real days line up correctly
+        daysHtml += '<div class="day-card" style="visibility:hidden"></div>';
+      }
+
+      // Render actual days
       for (let date = 1; date <= numDays; date++) {
         const dayKey = getDayKey(currentYear, currentMonth, date);
         const eventItems = events[dayKey] || [];
@@ -510,6 +528,11 @@
         '<div class="legend-row">' +
         legendHtml +
         "</div>" +
+
+        // Weekday header row (Sunday start, Saturday end)
+        '<div class="calendar-weekdays">' +
+        '<div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>' +
+        '</div>' +
 
         "<div>" +
         '<div class="calendar-grid">' +

@@ -16,9 +16,7 @@
       --pill-radius: 999px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -48,15 +46,9 @@
       gap: 8px;
     }
 
-    .title {
-      font-size: 22px;
-      font-weight: 700;
-    }
+    .title { font-size: 22px; font-weight: 700; }
 
-    .subtitle {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
+    .subtitle { font-size: 14px; color: var(--text-muted); }
 
     .btn {
       border: 1px solid var(--border-soft);
@@ -67,10 +59,7 @@
       cursor: pointer;
     }
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .month-header {
       text-align: center;
@@ -116,10 +105,7 @@
       cursor: pointer;
     }
 
-    .day-number {
-      font-weight: 700;
-      font-size: 13px;
-    }
+    .day-number { font-weight: 700; font-size: 13px; }
 
     .event-pill {
       border-radius: var(--pill-radius);
@@ -227,17 +213,9 @@
     }
 
     @media (max-width: 600px) {
-      .calendar-grid {
-        gap: 3px;
-      }
-
-      .day-card {
-        padding: 4px 2px;
-      }
-
-      .title {
-        font-size: 20px;
-      }
+      .calendar-grid { gap: 3px; }
+      .day-card { padding: 4px 2px; }
+      .title { font-size: 20px; }
     }
   </style>
 </head>
@@ -248,7 +226,29 @@
     </div>
   </div>
 
+  <!-- Firebase SDKs (compat version for simpler code) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
   <script>
+    // Your actual Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBB2xWE_R6y1NSwLHMtOYU-qgvo7Q_K4-0",
+      authDomain: "sunray-calendar-60d27.firebaseapp.com",
+      databaseURL: "https://sunray-calendar-60d27-default-rtdb.firebaseio.com",
+      projectId: "sunray-calendar-60d27",
+      storageBucket: "sunray-calendar-60d27.firebasestorage.app",
+      messagingSenderId: "557134436120",
+      appId: "1:557134436120:web:37a020aa83baba09aeb06d",
+      measurementId: "G-39LX98NSHV"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    // All calendar data will live under this node
+    const EVENTS_REF = db.ref("sunrayCondoEvents");
+
     const COLORS = {
       red: { label: "Not Using", hex: "#ef4444" },
       yellow: { label: "Might Be Using", hex: "#eab308" },
@@ -266,29 +266,22 @@
     ];
 
     const MONTH_NAMES = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December"
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
     ];
 
     function getDayKey(year, month, day) {
-      return year + "-" + month + "-" + day; // month 0-based
+      return year + "-" + month + "-" + day; // month is 0-based
     }
 
     const today = new Date();
     let currentYear = today.getFullYear();
     let currentMonth = today.getMonth();
     let selectedDate = null;
-    let events = {}; // { "year-month-day": [ { familyIndex, color }, ... ] }
+
+    // Shared events data (across all users)
+    let events = {};   // { "year-month-day": [ { familyIndex, color }, ... ] }
+    // Local undo history (per device)
     let history = [];
 
     function daysInMonth(year, month) {
@@ -300,6 +293,11 @@
       history.push(clone);
     }
 
+    function writeEventsToServer() {
+      // Overwrite the shared events in Firebase
+      EVENTS_REF.set(events);
+    }
+
     function addEvent(dayKey, familyIndex, color) {
       if (!dayKey) return;
       pushHistory();
@@ -307,7 +305,7 @@
         events[dayKey] = [];
       }
       events[dayKey].push({ familyIndex, color });
-      render();
+      writeEventsToServer();
     }
 
     function deleteEvent(dayKey, index) {
@@ -318,13 +316,13 @@
       if (!list.length) {
         delete events[dayKey];
       }
-      render();
+      writeEventsToServer();
     }
 
     function undoLast() {
       if (!history.length) return;
       events = history.pop() || {};
-      render();
+      writeEventsToServer();
     }
 
     function goToPrevMonth() {
@@ -601,7 +599,12 @@
       }
     });
 
-    render();
+    // Subscribe to changes from Firebase (shared across all users)
+    EVENTS_REF.on("value", (snapshot) => {
+      const data = snapshot.val();
+      events = data && typeof data === "object" ? data : {};
+      render();
+    });
   </script>
 </body>
 </html>
